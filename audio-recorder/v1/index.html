@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Online Audio Recorder</title>
+  <title>Online Audio Recorder - Recording Tool</title>
   <style>
     body {
       background-color: #1f1f1f;
@@ -38,28 +38,13 @@
       max-width: 300px;
       margin-top: 20px;
     }
-
-    #audioList {
-      text-align: left;
-      max-width: 300px;
-      margin: 20px auto;
-      padding: 10px;
-      background-color: #333;
-      border-radius: 5px;
-    }
-
-    #audioList audio {
-      width: 100%;
-      margin-bottom: 5px;
-    }
   </style>
 </head>
 <body>
-  <h1>Online Audio Recorder</h1>
+  <h1>Online Audio Recorder - Recording Tool</h1>
   <button id="startRecording">Start Recording</button>
   <button id="stopRecording" disabled>Stop Recording</button>
   <audio id="audioPlayer" controls></audio>
-  <div id="audioList"></div>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -69,7 +54,6 @@
       const startRecordingButton = document.getElementById('startRecording');
       const stopRecordingButton = document.getElementById('stopRecording');
       const audioPlayer = document.getElementById('audioPlayer');
-      const audioListContainer = document.getElementById('audioList');
 
       startRecordingButton.addEventListener('click', async () => {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -85,16 +69,6 @@
         mediaRecorder.onstop = () => {
           const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
           const audioUrl = URL.createObjectURL(audioBlob);
-
-          // Save audio data to local storage
-          const audioData = localStorage.getItem('audioData') || '[]';
-          const parsedAudioData = JSON.parse(audioData);
-          parsedAudioData.push(audioUrl);
-          localStorage.setItem('audioData', JSON.stringify(parsedAudioData));
-
-          // Display audio list
-          displayAudioList(parsedAudioData);
-
           audioPlayer.src = audioUrl;
         };
 
@@ -108,35 +82,6 @@
         startRecordingButton.disabled = false;
         stopRecordingButton.disabled = true;
       });
-
-      // Display audio list on page load
-      const initialAudioData = localStorage.getItem('audioData') || '[]';
-      const parsedInitialAudioData = JSON.parse(initialAudioData);
-      displayAudioList(parsedInitialAudioData);
-
-      function displayAudioList(audioData) {
-        audioListContainer.innerHTML = '';
-
-        audioData.forEach((audioUrl, index) => {
-          const audioElement = document.createElement('audio');
-          audioElement.src = audioUrl;
-          audioElement.controls = true;
-
-          const deleteButton = document.createElement('button');
-          deleteButton.innerText = 'Delete';
-          deleteButton.addEventListener('click', () => {
-            audioData.splice(index, 1);
-            localStorage.setItem('audioData', JSON.stringify(audioData));
-            displayAudioList(audioData);
-          });
-
-          const listItem = document.createElement('div');
-          listItem.appendChild(audioElement);
-          listItem.appendChild(deleteButton);
-
-          audioListContainer.appendChild(listItem);
-        });
-      }
     });
   </script>
 </body>
