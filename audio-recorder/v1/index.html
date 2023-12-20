@@ -39,12 +39,17 @@
       max-width: 300px;
       margin-top: 20px;
     }
+
+    canvas {
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
   <h1>Online Audio Recorder - Recording Tool</h1>
   <button id="recordingButton">Record</button>
   <audio id="audioPlayer" controls></audio>
+  <canvas id="waveCanvas" width="500" height="100"></canvas>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -54,6 +59,8 @@
 
       const recordingButton = document.getElementById('recordingButton');
       const audioPlayer = document.getElementById('audioPlayer');
+      const waveCanvas = document.getElementById('waveCanvas');
+      const canvasContext = waveCanvas.getContext('2d');
 
       recordingButton.addEventListener('click', () => {
         if (!isRecording) {
@@ -71,6 +78,7 @@
             mediaRecorder.ondataavailable = (event) => {
               if (event.data.size > 0) {
                 audioChunks.push(event.data);
+                drawWaveform();
               }
             };
 
@@ -100,6 +108,51 @@
       function updateButtonAppearance() {
         recordingButton.classList.toggle('recording', isRecording);
         recordingButton.innerText = isRecording ? 'Stop Recording' : 'Start Recording';
+      }
+
+      function drawWaveform() {
+        const analyser = new AnalyserNode(audioContext);
+        const source = audioContext.createBufferSource();
+        audioContext.decodeAudioData(audioChunks[0], (buffer) => {
+          source.buffer = buffer;
+          source.connect(analyser);
+          analyser.connect(audioContext.destination);
+          source.start();
+
+          const dataArray = new Uint8Array(analyser.fftSize);
+          canvasContext.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
+
+          function draw() {
+            analyser.getByteTimeDomainData(dataArray);
+            canvasContext.fillStyle = '#61dafb';
+            canvasContext.lineWidth = 2;
+            canvasContext.strokeStyle = '#61dafb';
+            canvasContext.beginPath();
+
+            const sliceWidth = waveCanvas.width / dataArray.length;
+            let x = 0;
+
+            for (let i = 0; i < dataArray.length; i++) {
+              const v = dataArray[i] / 128.0;
+              const y = v * waveCanvas.height / 2;
+
+              if (i === 0) {
+                canvasContext.moveTo(x, y);
+              } else {
+                canvasContext.lineTo(x, y);
+              }
+
+              x += sliceWidth;
+            }
+
+            canvasContext.lineTo(waveCanvas.width, waveCanvas.height / 2);
+            canvasContext.stroke();
+
+            requestAnimationFrame(draw);
+          }
+
+          draw();
+        });
       }
     });
   </script>
