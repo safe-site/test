@@ -12,6 +12,10 @@
       text-align: center;
       padding: 20px;
       margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
     h1 {
@@ -19,16 +23,28 @@
       margin-bottom: 20px;
     }
 
+    #recordingContainer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
     #recordingButton {
       background-color: #61dafb;
       color: #fff;
-      padding: 15px 30px;
+      padding: 20px;
       margin: 20px;
       border: none;
-      border-radius: 5px;
+      border-radius: 50%;
       cursor: pointer;
       font-size: 16px;
       transition: background-color 0.3s ease;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
     #recordingButton.recording {
@@ -44,8 +60,10 @@
 </head>
 <body>
   <h1>Online Audio Recorder</h1>
-  <button id="recordingButton">Record</button>
-  <audio id="audioPlayer" controls></audio>
+  <div id="recordingContainer">
+    <audio id="audioPlayer" controls></audio>
+    <button id="recordingButton">Record</button>
+  </div>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -100,7 +118,7 @@
 
       function updateButtonAppearance() {
         recordingButton.classList.toggle('recording', isRecording);
-        recordingButton.innerText = isRecording ? 'Stop Recording' : 'Start Recording';
+        recordingButton.innerText = isRecording ? 'Pause' : 'Record';
       }
     });
   </script>
