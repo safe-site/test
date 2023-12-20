@@ -78,17 +78,54 @@ document.addEventListener('DOMContentLoaded', () => {
   
         const deleteButton = document.createElement('button');
         deleteButton.innerText = 'Delete';
-        deleteButton.addEventListener('click', () => {
-          audioData.splice(index, 1);
-          localStorage.setItem('audioData', JSON.stringify(audioData));
-          displayAudioList(audioData);
-        });
   
         const listItem = document.createElement('div');
         listItem.appendChild(audioElement);
         listItem.appendChild(deleteButton);
   
         audioListContainer.appendChild(listItem);
+  
+        // Handle swipe gestures for each item
+        handleSwipe(
+          listItem,
+          () => {
+            // Swipe right (share)
+            console.log('Share audio at index:', index);
+            // Add your share functionality here
+          },
+          () => {
+            // Swipe left (delete)
+            console.log('Delete audio at index:', index);
+            // Add your delete functionality here
+            audioData.splice(index, 1);
+            localStorage.setItem('audioData', JSON.stringify(audioData));
+            displayAudioList(audioData);
+          }
+        );
+      });
+    }
+  
+    // Function to handle swipe gestures
+    function handleSwipe(element, onLeftSwipe, onRightSwipe) {
+      let touchStartX = 0;
+      let touchEndX = 0;
+  
+      element.addEventListener('touchstart', (event) => {
+        touchStartX = event.touches[0].clientX;
+      });
+  
+      element.addEventListener('touchmove', (event) => {
+        touchEndX = event.touches[0].clientX;
+      });
+  
+      element.addEventListener('touchend', () => {
+        const swipeDistance = touchEndX - touchStartX;
+  
+        if (swipeDistance > 50) {
+          onRightSwipe();
+        } else if (swipeDistance < -50) {
+          onLeftSwipe();
+        }
       });
     }
   });
