@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="src/styles/index.css">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#050505">
+<link rel="manifest" href="manifest.json">
+
+
+    <title>PWA</title>
+</head>
+<body>
+
+    <h1>Website Redirector</h1>
+
+    <label for="websiteInput">Enter Website URL:</label>
+    <input type="text" id="websiteInput" placeholder="https://example.com">
+    <button onclick="saveAndRedirect()">Save and Redirect</button>
+
+    <p>This tool allows you to save a website URL locally and redirect to it later. If you want to clear the saved URL, you can do so through your browser settings.</p>
+
+
+    <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+        <div class="lds-ring">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+    </div>
+
+
+    <!-- Add a custom install button or prompt -->
+  <button id="installButton" style="display: none;">Install App</button>
+    
+  <script src="src/scripts/register-service-worker.js"></script>
+    <script src="src/scripts/install-pwa.js"></script>
+    <script src="src/scripts/index.js"></script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+    "name": "PWA-Progressive Wev App",
+    "short_name": "PWA",
+    "description": "A simple PWA-Progressive Wev App",
+    "start_url": "index.html",
+    "display": "standalone",
+    "background_color": "#1f1f1f",
+    "theme_color": "#050505",
+    "icons": [
+      {
+        "src": "assets/images/app-icon.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "assets/images/app-icon.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      }
+    ]
+  }
+
