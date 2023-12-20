@@ -1,0 +1,86 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+  
+  body {
+    background-color: #282c34;
+    color: #fff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  #header {
+    height: 10%;
+    margin-bottom: 2%;
+  }
+  
+  h1 {
+    font-size: 3vw;
+    margin: 0;
+    line-height: 100%;
+  }
+  
+  #middle {
+    flex-grow: 1;
+    overflow-y: auto;
+    max-height: 70%;
+  }
+  
+  #recordingContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 2%;
+  }
+  
+  #recordingButton {
+    background-color: #61dafb;
+    color: #fff;
+    padding: 3vw;
+    margin: 2%;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 5vw;
+    transition: background-color 0.3s ease;
+    width: 15vw;
+    height: 15vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  #recordingButton.recording {
+    background-color: #ff5555;
+  }
+  
+  #audioPlayer {
+    width: 90%;
+    max-width: 300px;
+    margin-top: 2%;
+  }
+  
+  #audioList {
+    text-align: left;
+    max-width: 90%;
+    margin: 0 auto;
+    padding: 2%;
+    background-color: #333;
+    border-radius: 5px;
+  }
+  
+  #audioList audio {
+    width: 100%;
+    margin-bottom: 2%;
+  }
+  
+  #bottom {
+    height: 10%;
+    margin-top: 2%;
+  }
+  
