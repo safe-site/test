@@ -13,8 +13,8 @@
         "type": "image/png"
       },
       {
-        "src": "assets/images/app-icon.png",
-        "sizes": "192x192",
+        "src": "assets/images/icon512.png",
+        "sizes": "512x512",
         "type": "image/png"
       }
     ]
