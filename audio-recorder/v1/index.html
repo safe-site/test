@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Online Audio Recorder</title>
+  <style>
+    body {
+      background-color: #1f1f1f;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      margin: 0;
+    }
+
+    h1 {
+      color: #61dafb;
+    }
+
+    button {
+      background-color: #61dafb;
+      color: #fff;
+      padding: 10px;
+      margin: 5px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      background-color: #a0a0a0;
+      cursor: not-allowed;
+    }
+
+    #audioPlayer {
+      width: 100%;
+      max-width: 300px;
+      margin-top: 20px;
+    }
+
+    #audioList {
+      text-align: left;
+      max-width: 300px;
+      margin: 20px auto;
+      padding: 10px;
+      background-color: #333;
+      border-radius: 5px;
+    }
+
+    #audioList audio {
+      width: 100%;
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Online Audio Recorder</h1>
+  <button id="startRecording">Start Recording</button>
+  <button id="stopRecording" disabled>Stop Recording</button>
+  <audio id="audioPlayer" controls></audio>
+  <div id="audioList"></div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      let mediaRecorder;
+      let audioChunks = [];
+
+      const startRecordingButton = document.getElementById('startRecording');
+      const stopRecordingButton = document.getElementById('stopRecording');
+      const audioPlayer = document.getElementById('audioPlayer');
+      const audioListContainer = document.getElementById('audioList');
+
+      startRecordingButton.addEventListener('click', async () => {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+        mediaRecorder = new MediaRecorder(stream);
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            audioChunks.push(event.data);
+          }
+        };
+
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+          const audioUrl = URL.createObjectURL(audioBlob);
+
+          // Save audio data to local storage
+          const audioData = localStorage.getItem('audioData') || '[]';
+          const parsedAudioData = JSON.parse(audioData);
+          parsedAudioData.push(audioUrl);
+          localStorage.setItem('audioData', JSON.stringify(parsedAudioData));
+
+          // Display audio list
+          displayAudioList(parsedAudioData);
+
+          audioPlayer.src = audioUrl;
+        };
+
+        mediaRecorder.start();
+        startRecordingButton.disabled = true;
+        stopRecordingButton.disabled = false;
+      });
+
+      stopRecordingButton.addEventListener('click', () => {
+        mediaRecorder.stop();
+        startRecordingButton.disabled = false;
+        stopRecordingButton.disabled = true;
+      });
+
+      // Display audio list on page load
+      const initialAudioData = localStorage.getItem('audioData') || '[]';
+      const parsedInitialAudioData = JSON.parse(initialAudioData);
+      displayAudioList(parsedInitialAudioData);
+
+      function displayAudioList(audioData) {
+        audioListContainer.innerHTML = '';
+
+        audioData.forEach((audioUrl, index) => {
+          const audioElement = document.createElement('audio');
+          audioElement.src = audioUrl;
+          audioElement.controls = true;
+
+          const deleteButton = document.createElement('button');
+          deleteButton.innerText = 'Delete';
+          deleteButton.addEventListener('click', () => {
+            audioData.splice(index, 1);
+            localStorage.setItem('audioData', JSON.stringify(audioData));
+            displayAudioList(audioData);
+          });
+
+          const listItem = document.createElement('div');
+          listItem.appendChild(audioElement);
+          listItem.appendChild(deleteButton);
+
+          audioListContainer.appendChild(listItem);
+        });
+      }
+    });
+  </script>
+</body>
+</html>
