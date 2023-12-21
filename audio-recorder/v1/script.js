@@ -15,6 +15,26 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   
+    // Swipe left or right event handling
+    const mc = new Hammer.Manager(audioListContainer);
+    mc.add(new Hammer.Swipe());
+    
+    mc.on('swipeleft', (event) => {
+      const listItem = event.target.closest('.audio-list-item');
+      if (listItem) {
+        const index = Array.from(listItem.parentElement.children).indexOf(listItem);
+        deleteAudio(index);
+      }
+    });
+  
+    mc.on('swiperight', (event) => {
+      const listItem = event.target.closest('.audio-list-item');
+      if (listItem) {
+        const index = Array.from(listItem.parentElement.children).indexOf(listItem);
+        shareAudio(index);
+      }
+    });
+  
     function startRecording() {
       navigator.mediaDevices.getUserMedia({ audio: true })
         .then((stream) => {
@@ -63,10 +83,22 @@ document.addEventListener('DOMContentLoaded', () => {
       recordingButton.innerText = isRecording ? '\u23F8;' : '\u25B6;';
     }
   
-    // Display audio list on page load
-    const initialAudioData = localStorage.getItem('audioData') || '[]';
-    const parsedInitialAudioData = JSON.parse(initialAudioData);
-    displayAudioList(parsedInitialAudioData);
+    function deleteAudio(index) {
+      const audioData = getAudioData();
+      audioData.splice(index, 1);
+      localStorage.setItem('audioData', JSON.stringify(audioData));
+      displayAudioList(audioData);
+    }
+  
+    function shareAudio(index) {
+      // Add your share logic here
+      alert(`Sharing audio at index ${index}`);
+    }
+  
+    function getAudioData() {
+      const audioData = localStorage.getItem('audioData') || '[]';
+      return JSON.parse(audioData);
+    }
   
     function displayAudioList(audioData) {
       audioListContainer.innerHTML = '';
@@ -78,55 +110,28 @@ document.addEventListener('DOMContentLoaded', () => {
   
         const deleteButton = document.createElement('button');
         deleteButton.innerText = 'Delete';
+        deleteButton.addEventListener('click', () => {
+          deleteAudio(index);
+        });
+  
+        const shareButton = document.createElement('button');
+        shareButton.innerText = 'Share';
+        shareButton.addEventListener('click', () => {
+          shareAudio(index);
+        });
   
         const listItem = document.createElement('div');
+        listItem.classList.add('audio-list-item');
         listItem.appendChild(audioElement);
         listItem.appendChild(deleteButton);
+        listItem.appendChild(shareButton);
   
         audioListContainer.appendChild(listItem);
-  
-        // Handle swipe gestures for each item
-        handleSwipe(
-          listItem,
-          () => {
-            // Swipe right (share)
-            console.log('Share audio at index:', index);
-            // Add your share functionality here
-          },
-          () => {
-            // Swipe left (delete)
-            console.log('Delete audio at index:', index);
-            // Add your delete functionality here
-            audioData.splice(index, 1);
-            localStorage.setItem('audioData', JSON.stringify(audioData));
-            displayAudioList(audioData);
-          }
-        );
       });
     }
   
-    // Function to handle swipe gestures
-    function handleSwipe(element, onLeftSwipe, onRightSwipe) {
-      let touchStartX = 0;
-      let touchEndX = 0;
-  
-      element.addEventListener('touchstart', (event) => {
-        touchStartX = event.touches[0].clientX;
-      });
-  
-      element.addEventListener('touchmove', (event) => {
-        touchEndX = event.touches[0].clientX;
-      });
-  
-      element.addEventListener('touchend', () => {
-        const swipeDistance = touchEndX - touchStartX;
-  
-        if (swipeDistance > 50) {
-          onRightSwipe();
-        } else if (swipeDistance < -50) {
-          onLeftSwipe();
-        }
-      });
-    }
+    // Display audio list on page load
+    const initialAudioData = getAudioData();
+    displayAudioList(initialAudioData);
   });
   
