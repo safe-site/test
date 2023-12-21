@@ -15,23 +15,32 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   
-    // Swipe left or right event handling
-    const mc = new Hammer.Manager(audioListContainer);
-    mc.add(new Hammer.Swipe());
-    
-    mc.on('swipeleft', (event) => {
-      const listItem = event.target.closest('.audio-list-item');
-      if (listItem) {
-        const index = Array.from(listItem.parentElement.children).indexOf(listItem);
-        deleteAudio(index);
+    // Initialize Hammer.js on the audioListContainer
+    const hammer = new Hammer(audioListContainer);
+  
+    // Listen for swipe events
+    hammer.on('swipeleft', (event) => {
+      const target = event.target;
+  
+      if (target.tagName === 'AUDIO') {
+        // Delete the audio item
+        const listItem = target.closest('.audio-list-item');
+        const index = Array.from(audioListContainer.children).indexOf(listItem);
+  
+        if (index !== -1) {
+          audioData.splice(index, 1);
+          localStorage.setItem('audioData', JSON.stringify(audioData));
+          displayAudioList(audioData);
+        }
       }
     });
   
-    mc.on('swiperight', (event) => {
-      const listItem = event.target.closest('.audio-list-item');
-      if (listItem) {
-        const index = Array.from(listItem.parentElement.children).indexOf(listItem);
-        shareAudio(index);
+    hammer.on('swiperight', (event) => {
+      const target = event.target;
+  
+      if (target.tagName === 'AUDIO') {
+        // Share the audio item (you can customize this part)
+        alert('Share audio: ' + target.src);
       }
     });
   
@@ -83,22 +92,10 @@ document.addEventListener('DOMContentLoaded', () => {
       recordingButton.innerText = isRecording ? '\u23F8;' : '\u25B6;';
     }
   
-    function deleteAudio(index) {
-      const audioData = getAudioData();
-      audioData.splice(index, 1);
-      localStorage.setItem('audioData', JSON.stringify(audioData));
-      displayAudioList(audioData);
-    }
-  
-    function shareAudio(index) {
-      // Add your share logic here
-      alert(`Sharing audio at index ${index}`);
-    }
-  
-    function getAudioData() {
-      const audioData = localStorage.getItem('audioData') || '[]';
-      return JSON.parse(audioData);
-    }
+    // Display audio list on page load
+    const initialAudioData = localStorage.getItem('audioData') || '[]';
+    const parsedInitialAudioData = JSON.parse(initialAudioData);
+    displayAudioList(parsedInitialAudioData);
   
     function displayAudioList(audioData) {
       audioListContainer.innerHTML = '';
@@ -108,30 +105,12 @@ document.addEventListener('DOMContentLoaded', () => {
         audioElement.src = audioUrl;
         audioElement.controls = true;
   
-        const deleteButton = document.createElement('button');
-        deleteButton.innerText = 'Delete';
-        deleteButton.addEventListener('click', () => {
-          deleteAudio(index);
-        });
-  
-        const shareButton = document.createElement('button');
-        shareButton.innerText = 'Share';
-        shareButton.addEventListener('click', () => {
-          shareAudio(index);
-        });
-  
         const listItem = document.createElement('div');
-        listItem.classList.add('audio-list-item');
+        listItem.classList.add('audio-list-item'); // Add a class for swipe gestures
         listItem.appendChild(audioElement);
-        listItem.appendChild(deleteButton);
-        listItem.appendChild(shareButton);
   
         audioListContainer.appendChild(listItem);
       });
     }
-  
-    // Display audio list on page load
-    const initialAudioData = getAudioData();
-    displayAudioList(initialAudioData);
   });
   
