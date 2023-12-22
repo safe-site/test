@@ -1,59 +1,57 @@
 document.addEventListener('DOMContentLoaded', () => {
+  const recordingsList = document.getElementById('recordingsList');
+  const toggleRecordingButton = document.getElementById('toggleRecording');
+
   let mediaRecorder;
   let audioChunks = [];
-  let recordingsList = document.getElementById('recordingsList');
-  const toggleRecordingButton = document.getElementById('toggleRecording');
-  const audioElement = document.querySelector('audio');
-
-  let isRecording = false;
 
   // Load existing recordings from local storage
   loadRecordingsFromLocalStorage();
 
   toggleRecordingButton.addEventListener('click', () => {
-    if (isRecording) {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
       stopRecording();
-      toggleRecordingButton.textContent = 'Start Recording';
     } else {
       startRecording();
-      toggleRecordingButton.textContent = 'Stop Recording';
     }
-
-    isRecording = !isRecording;
   });
 
-  async function startRecording() {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  function startRecording() {
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then((stream) => {
+        mediaRecorder = new MediaRecorder(stream);
 
-    mediaRecorder = new MediaRecorder(stream);
-    mediaRecorder.ondataavailable = (event) => {
-      if (event.data.size > 0) {
-        audioChunks.push(event.data);
-      }
-    };
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            audioChunks.push(event.data);
+          }
+        };
 
-    mediaRecorder.onstop = () => {
-      const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-      const audioUrl = URL.createObjectURL(audioBlob);
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+          const audioUrl = URL.createObjectURL(audioBlob);
 
-      // Save the recording URL to local storage
-      saveRecordingToLocalStorage(audioUrl);
+          // Save the recording URL to local storage
+          saveRecordingToLocalStorage(audioUrl);
 
-      // Create a new recording item
-      const recordingItem = createRecordingElement(audioUrl);
+          // Create a new recording item
+          createAndAppendRecordingItem(audioUrl);
 
-      // Append the recording item to the list
-      recordingsList.appendChild(recordingItem);
+          audioChunks = []; // Clear the chunks for the next recording
+        };
 
-      audioChunks = []; // Clear the chunks for the next recording
-    };
-
-    mediaRecorder.start();
+        mediaRecorder.start();
+        toggleRecordingButton.textContent = 'Stop Recording';
+      })
+      .catch((error) => {
+        console.error('Error starting recording:', error);
+      });
   }
 
   function stopRecording() {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
       mediaRecorder.stop();
+      toggleRecordingButton.textContent = 'Start Recording';
     }
   }
 
@@ -65,19 +63,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function loadRecordingsFromLocalStorage() {
     const existingRecordings = JSON.parse(localStorage.getItem('recordings')) || [];
-    for (const audioUrl of existingRecordings) {
-      const recordingItem = createRecordingElement(audioUrl);
-      recordingsList.appendChild(recordingItem);
-    }
+    existingRecordings.forEach(createAndAppendRecordingItem);
   }
 
-  function createRecordingElement(audioUrl) {
+  function createAndAppendRecordingItem(audioUrl) {
     const recordingItem = document.createElement('div');
     recordingItem.classList.add('recordedItem');
-    const audioElement = document.createElement('audio');
-    audioElement.controls = true;
-    audioElement.src = audioUrl;
-    recordingItem.appendChild(audioElement);
-    return recordingItem;
+    recordingItem.innerHTML = `<audio controls src="${audioUrl}"></audio>`;
+    recordingsList.appendChild(recordingItem);
   }
 });
