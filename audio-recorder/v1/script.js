@@ -1,116 +1,85 @@
 document.addEventListener('DOMContentLoaded', () => {
     let mediaRecorder;
     let audioChunks = [];
+    let recordingsList = document.getElementById('recordingsList');
+    const toggleRecordingButton = document.getElementById('toggleRecording');
+    const audioElement = document.querySelector('audio');
+  
     let isRecording = false;
   
-    const recordingButton = document.getElementById('recordingButton');
-    const audioPlayer = document.getElementById('audioPlayer');
-    const audioListContainer = document.getElementById('audioList');
+    // Load existing recordings from local storage
+    loadRecordingsFromLocalStorage();
   
-    recordingButton.addEventListener('click', () => {
-      if (!isRecording) {
-        startRecording();
-      } else {
+    toggleRecordingButton.addEventListener('click', () => {
+      if (isRecording) {
         stopRecording();
+        toggleRecordingButton.textContent = 'Start Recording';
+      } else {
+        startRecording();
+        toggleRecordingButton.textContent = 'Stop Recording';
       }
+  
+      isRecording = !isRecording;
     });
   
-    // Initialize Hammer.js on the audioListContainer
-    const hammer = new Hammer(audioListContainer);
+    async function startRecording() {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
   
-    // Listen for swipe events
-    hammer.on('swipeleft', (event) => {
-      const target = event.target;
-  
-      if (target.tagName === 'AUDIO') {
-        // Delete the audio item
-        const listItem = target.closest('.audio-list-item');
-        const index = Array.from(audioListContainer.children).indexOf(listItem);
-  
-        if (index !== -1) {
-          audioData.splice(index, 1);
-          localStorage.setItem('audioData', JSON.stringify(audioData));
-          displayAudioList(audioData);
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunks.push(event.data);
         }
-      }
-    });
+      };
   
-    hammer.on('swiperight', (event) => {
-      const target = event.target;
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+        const audioUrl = URL.createObjectURL(audioBlob);
   
-      if (target.tagName === 'AUDIO') {
-        // Share the audio item (you can customize this part)
-        alert('Share audio: ' + target.src);
-      }
-    });
+        // Generate a unique identifier for the recording
+        const recordingId = new Date().toISOString();
   
-    function startRecording() {
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then((stream) => {
-          mediaRecorder = new MediaRecorder(stream);
+        // Save the recording URL to local storage with a unique identifier
+        saveRecordingToLocalStorage(recordingId, audioUrl);
   
-          mediaRecorder.ondataavailable = (event) => {
-            if (event.data.size > 0) {
-              audioChunks.push(event.data);
-            }
-          };
+        // Create a new recording item
+        const recordingItem = document.createElement('div');
+        recordingItem.classList.add('recordedItem');
+        recordingItem.innerHTML = `
+          <audio controls src="${audioUrl}"></audio>
+        `;
   
-          mediaRecorder.onstop = () => {
-            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-            const audioUrl = URL.createObjectURL(audioBlob);
-            audioPlayer.src = audioUrl;
+        // Append the recording item to the list
+        recordingsList.appendChild(recordingItem);
   
-            // Save audio data to local storage
-            const audioData = localStorage.getItem('audioData') || '[]';
-            const parsedAudioData = JSON.parse(audioData);
-            parsedAudioData.push(audioUrl);
-            localStorage.setItem('audioData', JSON.stringify(parsedAudioData));
+        audioChunks = []; // Clear the chunks for the next recording
+      };
   
-            // Display audio list
-            displayAudioList(parsedAudioData);
-          };
-  
-          mediaRecorder.start();
-          isRecording = true;
-          updateButtonAppearance();
-        })
-        .catch((error) => {
-          console.error('Error accessing microphone:', error);
-        });
+      mediaRecorder.start();
     }
   
     function stopRecording() {
-      if (mediaRecorder) {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
         mediaRecorder.stop();
-        isRecording = false;
-        updateButtonAppearance();
       }
     }
   
-    function updateButtonAppearance() {
-      recordingButton.classList.toggle('recording', isRecording);
-      recordingButton.innerText = isRecording ? '\u23F8;' : '\u25B6;';
+    function saveRecordingToLocalStorage(recordingId, audioUrl) {
+      const existingRecordings = JSON.parse(localStorage.getItem('recordings')) || {};
+      existingRecordings[recordingId] = audioUrl;
+      localStorage.setItem('recordings', JSON.stringify(existingRecordings));
     }
   
-    // Display audio list on page load
-    const initialAudioData = localStorage.getItem('audioData') || '[]';
-    const parsedInitialAudioData = JSON.parse(initialAudioData);
-    displayAudioList(parsedInitialAudioData);
-  
-    function displayAudioList(audioData) {
-      audioListContainer.innerHTML = '';
-  
-      audioData.forEach((audioUrl, index) => {
-        const audioElement = document.createElement('audio');
-        audioElement.src = audioUrl;
-        audioElement.controls = true;
-  
-        const listItem = document.createElement('div');
-        listItem.classList.add('audio-list-item'); // Add a class for swipe gestures
-        listItem.appendChild(audioElement);
-  
-        audioListContainer.appendChild(listItem);
-      });
+    function loadRecordingsFromLocalStorage() {
+      const existingRecordings = JSON.parse(localStorage.getItem('recordings')) || {};
+      for (const [recordingId, audioUrl] of Object.entries(existingRecordings)) {
+        const recordingItem = document.createElement('div');
+        recordingItem.classList.add('recordedItem');
+        recordingItem.innerHTML = `
+          <audio controls src="${audioUrl}"></audio>
+        `;
+        recordingsList.appendChild(recordingItem);
+      }
     }
   });
   

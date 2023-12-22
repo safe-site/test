@@ -3,26 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Online Audio Recorder</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap">
+  <title>Voice Recorder</title>
 </head>
 <body>
-  <div id="header">
-    <h1>Online Audio Recorder</h1>
-  </div>
+  <h1>Voice Recorder</h1>
+  <audio controls></audio>
 
-  <div id="middle">
-    <div id="audioList"></div>
-  </div>
-
-  <div id="bottom">
-    <div id="recordingContainer">
-      <audio id="audioPlayer" controls></audio>
-      <button id="recordingButton">&#9724;</button>
+  <div id="centerSection">
+    <div id="recordingsList">
+      <!-- Recordings will be displayed here -->
     </div>
   </div>
 
-  
+  <div id="bottomSection">
+    <button id="toggleRecording" class="rounded-button">Start Recording</button>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>
