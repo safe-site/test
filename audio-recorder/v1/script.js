@@ -61,12 +61,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function playRecording(audioUrl) {
-    const audioElement = new Audio(audioUrl);
-    document.body.appendChild(audioElement); // Append the audio element to the document
+    const audioElement = new Audio();
+    audioElement.src = audioUrl;
     audioElement.play();
-    audioElement.addEventListener('ended', () => {
-      document.body.removeChild(audioElement); // Remove the audio element once it has finished playing
-    });
   }
 
   async function startRecording() {
