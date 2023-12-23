@@ -18,37 +18,59 @@ document.addEventListener('DOMContentLoaded', () => {
     isRecording = !isRecording;
   });
 
+  // Initialize IndexedDB
+  const dbPromise = new Promise((resolve, reject) => {
+    const request = window.indexedDB.open('VoiceRecorderDB', 1);
+
+    request.onerror = (event) => {
+      console.error('Error opening IndexedDB:', event.target.error);
+      reject(event.target.error);
+    };
+
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+
+      if (!db.objectStoreNames.contains('recordings')) {
+        db.createObjectStore('recordings', { keyPath: 'id', autoIncrement: true });
+      }
+    };
+
+    request.onsuccess = (event) => {
+      const db = event.target.result;
+      resolve(db);
+    };
+  });
+
+  function saveRecordingToDB(audioBlob) {
+    dbPromise.then((db) => {
+      const transaction = db.transaction(['recordings'], 'readwrite');
+      const store = transaction.objectStore('recordings');
+
+      const recording = { audioBlob: audioBlob };
+
+      store.add(recording);
+    });
+  }
+
+  function loadRecordingsFromDB() {
+    dbPromise.then((db) => {
+      const transaction = db.transaction(['recordings'], 'readonly');
+      const store = transaction.objectStore('recordings');
+
+      const getAll = store.getAll();
+
+      getAll.onsuccess = (event) => {
+        const recordings = event.target.result;
+        recordings.forEach((recording) => {
+          createRecordingItem(recording.audioBlob);
+        });
+      };
+    });
+  }
+
   function createRecordingItem(audioBlob) {
     const audioUrl = URL.createObjectURL(audioBlob);
 
-    const recordingItem = document.createElement('div');
-    recordingItem.classList.add('recordedItem');
-    recordingItem.innerHTML = `<audio controls src="${audioUrl}"></audio>`;
-
-    recordingItem.addEventListener('click', () => {
-      playRecording(audioUrl);
-    });
-
-    recordingsList.appendChild(recordingItem);
-
-    // Save the recording to local storage
-    saveRecordingToStorage(audioUrl);
-  }
-
-  function saveRecordingToStorage(audioUrl) {
-    const storedRecordings = JSON.parse(localStorage.getItem('recordings')) || [];
-    storedRecordings.push(audioUrl);
-    localStorage.setItem('recordings', JSON.stringify(storedRecordings));
-  }
-
-  function loadRecordingsFromStorage() {
-    const storedRecordings = JSON.parse(localStorage.getItem('recordings')) || [];
-    storedRecordings.forEach((audioUrl) => {
-      createRecordingItemFromStorage(audioUrl);
-    });
-  }
-
-  function createRecordingItemFromStorage(audioUrl) {
     const recordingItem = document.createElement('div');
     recordingItem.classList.add('recordedItem');
     recordingItem.innerHTML = `<audio controls src="${audioUrl}"></audio>`;
@@ -81,6 +103,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
         createRecordingItem(audioBlob);
 
+        // Save the recording to IndexedDB
+        saveRecordingToDB(audioBlob);
+
         audioChunks = [];
       };
 
@@ -96,6 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Load existing recordings from local storage on page load
-  loadRecordingsFromStorage();
+  // Load existing recordings from IndexedDB on page load
+  loadRecordingsFromDB();
 });
