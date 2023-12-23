@@ -12,12 +12,10 @@ document.addEventListener('DOMContentLoaded', () => {
   toggleRecordingButton.addEventListener('click', () => {
     if (isRecording) {
       stopRecording();
-      toggleRecordingButton.textContent = 'stop_circle';
-      toggleRecordingButton.style.color = 'red';
+      toggleRecordingButton.textContent = 'Start Recording';
     } else {
       startRecording();
-      toggleRecordingButton.textContent = 'check_circle';
-      toggleRecordingButton.style.color = 'green';
+      toggleRecordingButton.textContent = 'Stop Recording';
     }
 
     isRecording = !isRecording;
@@ -115,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
           saveRecordingToDB(audioBlob, formattedDate);
 
           audioChunks = [];
-          recordingProgress.textContent = '00:00:00';
+          recordingProgress.textContent = '00:00';
           clearInterval(updateRecordingProgress);
         };
 
@@ -127,9 +125,8 @@ document.addEventListener('DOMContentLoaded', () => {
           const elapsedTime = currentTime - startTime;
           const minutes = Math.floor(elapsedTime / 60000);
           const seconds = Math.floor((elapsedTime % 60000) / 1000);
-          const milliseconds = Math.floor((elapsedTime % 1000) / 10);
-          recordingProgress.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}:${String(milliseconds).padStart(2, '0')}`;
-        }, 10); // Update every 10 milliseconds for better accuracy
+          recordingProgress.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }, 1000);
       })
       .catch((error) => {
         console.error('Error accessing microphone:', error);
@@ -152,12 +149,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const hours = String(date.getHours() % 12 || 12).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     const seconds = String(date.getSeconds()).padStart(2, '0');
-    const milliseconds = String(date.getMilliseconds()).padStart(2, '0');
     const ampm = date.getHours() >= 12 ? 'PM' : 'AM';
 
-    return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}.${milliseconds} ${ampm}`;
+    return `${day}/${month}/${year} ${hours}:${minutes}:${seconds} ${ampm}`;
   }
 
-  // Load existing recordings from IndexedDB on page load
   loadRecordingsFromDB();
 });

@@ -3,26 +3,22 @@ document.addEventListener('DOMContentLoaded', () => {
   let audioChunks = [];
   const recordingsList = document.getElementById('recordingsList');
   const toggleRecordingButton = document.getElementById('toggleRecording');
-  const recordingProgress = document.getElementById('recordingProgress');
 
   let isRecording = false;
-  let startTime;
-  let updateRecordingProgress;
 
   toggleRecordingButton.addEventListener('click', () => {
     if (isRecording) {
       stopRecording();
-      toggleRecordingButton.textContent = 'stop_circle';
-      toggleRecordingButton.style.color = 'red';
+      toggleRecordingButton.textContent = 'Start Recording';
     } else {
       startRecording();
-      toggleRecordingButton.textContent = 'check_circle';
-      toggleRecordingButton.style.color = 'green';
+      toggleRecordingButton.textContent = 'Stop Recording';
     }
 
     isRecording = !isRecording;
   });
 
+  // Initialize IndexedDB
   const dbPromise = new Promise((resolve, reject) => {
     const request = window.indexedDB.open('VoiceRecorderDB', 1);
 
@@ -86,6 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
       playRecording(audioUrl);
     });
 
+    // Insert the new recording at the beginning of the list
     const firstRecordingItem = recordingsList.firstChild;
     recordingsList.insertBefore(recordingItem, firstRecordingItem);
   }
@@ -95,67 +92,52 @@ document.addEventListener('DOMContentLoaded', () => {
     audioElement.play();
   }
 
-  function startRecording() {
-    navigator.mediaDevices.getUserMedia({ audio: true })
-      .then((stream) => {
-        mediaRecorder = new MediaRecorder(stream);
-        mediaRecorder.ondataavailable = (event) => {
-          if (event.data.size > 0) {
-            audioChunks.push(event.data);
-          }
-        };
+  async function startRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-        mediaRecorder.onstop = () => {
-          const currentDate = new Date();
-          const formattedDate = formatDate(currentDate);
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunks.push(event.data);
+        }
+      };
 
-          const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-          createRecordingItem(audioBlob, formattedDate);
+      mediaRecorder.onstop = () => {
+        const currentDate = new Date();
+        const formattedDate = formatDate(currentDate);
 
-          saveRecordingToDB(audioBlob, formattedDate);
+        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+        createRecordingItem(audioBlob, formattedDate);
 
-          audioChunks = [];
-          recordingProgress.textContent = '00:00:00';
-          clearInterval(updateRecordingProgress);
-        };
+        // Save the recording to IndexedDB
+        saveRecordingToDB(audioBlob, formattedDate);
 
-        mediaRecorder.start();
-        startTime = performance.now();
+        audioChunks = [];
+      };
 
-        updateRecordingProgress = setInterval(() => {
-          const currentTime = performance.now();
-          const elapsedTime = currentTime - startTime;
-          const minutes = Math.floor(elapsedTime / 60000);
-          const seconds = Math.floor((elapsedTime % 60000) / 1000);
-          const milliseconds = Math.floor((elapsedTime % 1000) / 10);
-          recordingProgress.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}:${String(milliseconds).padStart(2, '0')}`;
-        }, 10); // Update every 10 milliseconds for better accuracy
-      })
-      .catch((error) => {
-        console.error('Error accessing microphone:', error);
-      });
+      mediaRecorder.start();
+    } catch (error) {
+      console.error('Error accessing microphone:', error);
+    }
   }
 
   function stopRecording() {
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
       mediaRecorder.stop();
-      const tracks = mediaRecorder.stream.getTracks();
-      tracks.forEach(track => track.stop());
-      clearInterval(updateRecordingProgress);
     }
   }
 
   function formatDate(date) {
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
     const year = date.getFullYear();
-    const hours = String(date.getHours() % 12 || 12).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
-    const milliseconds = String(date.getMilliseconds()).padStart(2, '0');
-    const ampm = date.getHours() >= 12 ? 'PM' : 'AM';
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const seconds = date.getSeconds();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
 
-    return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}.${milliseconds} ${ampm}`;
+    return `${day}/${month}/${year} ${hours % 12 || 12}:${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds} ${ampm}`;
   }
 
   // Load existing recordings from IndexedDB on page load

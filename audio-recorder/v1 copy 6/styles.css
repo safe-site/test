@@ -61,32 +61,28 @@ h1 {
 }
 
 #bottomSection {
-  display: grid;
+  display: flex;
   background-color: #333333;
+  padding: 20px;
   justify-content: center;
   align-items: center;
   position: fixed;
   width: 100%;
   bottom: 0;
-  height: 170px;
+  height: 70px;
 }
 
-#toggleRecording {
-  background: none;
+.rounded-button {
+  padding: 15px 30px;
+  font-size: 16px;
+  background-color: #61dafb;
+  color: #ffffff;
   border: none;
-  padding: 0px;
-  margin: 0%;
-  font-size: 60px;
-  color: red;
-  border-radius: 50px;
+  border-radius: 25px;
   cursor: pointer;
+  transition: background-color 0.3s;
 }
 
-
-
-/* Add styling for recording progress time */
-#recordingProgress {
-  color: #61dafb;
-  font-size: 18px;
-  margin-top: 10px;
+.rounded-button:hover {
+  background-color: #5094b3;
 }
