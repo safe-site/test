@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form</title>
+</head>
+<body>
+    <form id="myForm">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required><br>
+        
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br>
+        
+        <label for="dob">Date of Birth:</label>
+        <input type="date" id="dob" name="dob" required><br>
+
+        <input type="button" value="Submit" onclick="submitForm()">
+    </form>
+
+    <script>
+        function submitForm() {
+            var name = document.getElementById("name").value;
+            var email = document.getElementById("email").value;
+            var dob = document.getElementById("dob").value;
+
+            // Send form data to Google Apps Script
+            google.script.run
+              .withSuccessHandler(clearForm)
+              .processForm(name, email, dob);
+        }
+
+        function clearForm() {
+            document.getElementById("myForm").reset();
+            alert("Form submitted successfully!");
+        }
+    </script>
+
+    <!-- Load the Google Apps Script API -->
+    <script src="https://apis.google.com/js/api.js"></script>
+
+    <script>
+        // Replace "YOUR_WEB_APP_URL" with the actual URL of your Google Apps Script web app
+        var webAppUrl = "https://script.google.com/macros/s/AKfycbwxBTq2wLJacsVPiHHUUJjqYBSiZOkDM7aLp2u0bDzvsF2qTfUzToSmMuvLFSjDUme_7w/exec";
+        google.script.url.getLocation(function(location) {
+            if (location && location.parameters && location.parameters[webAppUrl]) {
+                // The script is running as a web app, update the web app URL
+                webAppUrl = location.parameters[webAppUrl];
+            }
+        });
+
+        google.script.run
+            .withSuccessHandler(function() {
+                google.script.url.getLocation(function(location) {
+                    if (location && location.parameters && location.parameters[webAppUrl]) {
+                        // The script is running as a web app, update the web app URL
+                        webAppUrl = location.parameters[webAppUrl];
+                    }
+                });
+            })
+            .setWebAppUrl(webAppUrl);
+    </script>
+</body>
+</html>
