@@ -84,9 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
     recordingItem.innerHTML = `
       <div class="audio-box">
         <div class="left-section">
-          <button class="playPauseButton" data-src="${audioUrl}">
-            <img src="play.png" alt="Play">
-          </button>
+          <button class="playPauseButton" data-src="${audioUrl}" data-state="paused"></button>
         </div>
         <div class="right-section">
           <p class="name">${name}</p>
@@ -110,28 +108,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function handlePlayPauseClick(button) {
     const audioUrl = button.getAttribute('data-src');
-    const imgElement = button.querySelector('img');
-  
+    const currentState = button.getAttribute('data-state');
+
     if (!audioElement || audioElement.src !== audioUrl) {
       audioElement = new Audio(audioUrl);
-  
-      audioElement.addEventListener('ended', () => {
-        imgElement.setAttribute('src', 'play.png');
-        imgElement.setAttribute('alt', 'Play');
-      });
     }
-  
-    if (audioElement.paused) {
+
+    if (currentState === 'paused') {
       audioElement.play();
-      imgElement.setAttribute('src', 'pause.png');
-      imgElement.setAttribute('alt', 'Pause');
+      button.classList.remove('play');
+      button.classList.add('pause');
+      button.setAttribute('data-state', 'playing');
     } else {
       audioElement.pause();
-      imgElement.setAttribute('src', 'play.png');
-      imgElement.setAttribute('alt', 'Play');
+      button.classList.remove('pause');
+      button.classList.add('play');
+      button.setAttribute('data-state', 'paused');
     }
   }
-  
 
   function handleTouchStart(event) {
     touchStartX = event.touches[0].clientX;
@@ -241,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
       mediaRecorder.stop();
       clearInterval(updateRecordingProgress);
-  
+
       // Stop microphone access
       if (mediaRecorder.stream) {
         mediaRecorder.stream.getTracks().forEach(track => track.stop());

@@ -52,7 +52,7 @@ h1 {
 .recordedItem {
   margin: 10px 0;
   padding: 15px;
-  background-color: #242424;
+  background-color: #313338;
   color: #e3e3e3;
   border-radius: 12px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
@@ -68,65 +68,23 @@ h1 {
   margin: 0;
 }
 
-#bottomSection {
-  display: grid;
-  background-color: #313338;
-  border-radius: 5px 5px 0px 0px;
-  justify-content: center;
-  align-items: center;
-  position: fixed;
-  width: 100%;
-  bottom: 0;
-  height: 20vh;
-}
-
-#toggleRecording {
-  background-color: #000000;
-  border: none;
-  padding: 0px;
-  margin: 0%;
-  margin-bottom: 30px;
-  font-size: 60px;
-  height: 60px;
-  width: 60px;
-  color: red;
-  border-radius: 50px;
-  cursor: pointer;
-}
-
-
-
-/* Add styling for recording progress time */
-#recordingProgress {
-  color: #f1f3f5;
-  font-size: 18px;
-  margin-top: 10px;
-}
-
-.left-section {
-  flex: 1;
-  text-align: left;
-}
-
-.right-section {
-  flex: 1;
-  text-align: right;
-}
-
 .audio-box {
   display: grid;
   grid-template-columns: auto auto;
 }
 
-/* Play/Pause Button Styling */
+
+
 .playPauseButton {
-  border: 1px solid #ffffff;
   background-color: #ffffff;
-  border-radius: 50px;
-  height: 40px;
-  width: 40px;
+  background-repeat: no-repeat;
+  background-size: contain;
+  border: 1px solid rgb(255, 255, 255);
   cursor: pointer;
-  color: #888888;
+  width: 40px;
+  height: 40px;
+  border-radius: 50px;
+  background-image: url('play.png');
 }
 
 .recordedItem .right-section p {
@@ -157,7 +115,76 @@ h1 {
   z-index: 1;
 }
 
-.playPauseButton img {
+
+  .play {
+    background-image: url('play.png');background-color: #ffffff;
+    background-repeat: no-repeat;
+    background-size: contain;
+    border: 1px solid rgb(255, 255, 255);
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50px;
+  }
+
+  .pause {
+    background-image: url('pause.png');background-color: #ffffff;
+    background-repeat: no-repeat;
+    background-size: contain;
+    border: 1px solid rgb(255, 255, 255);
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50px;
+  }
+
+  .left-section {
+    flex: 1;
+    text-align: left;
+  }
+  
+  .right-section {
+    flex: 1;
+    text-align: right;
+  }
+  
+
+
+
+#bottomSection {
+  display: grid;
+  grid-template-rows: auto auto;
+  background-color: #313338;
+  border-radius: 5px 5px 0px 0px;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
   width: 100%;
-  height: 100%;
+  bottom: 0;
+  height: 20vh;
 }
+
+#toggleRecording {
+  background-color: #000000;
+  padding: 0px;
+  margin: 0%;
+  margin-bottom: 30px;
+  font-size: 60px;
+  height: 60px;
+  width: 60px;
+  color: red;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+}
+
+#recordingProgress {
+  display: flex;
+  color: #f1f3f5;
+  font-size: 18px;
+  margin-top: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+
