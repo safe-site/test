@@ -8,9 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let isRecording = false;
   let startTime;
   let updateRecordingProgress;
-  let audioElement;
-  let touchStartX;
-  let touchEndX;
+  let audioElement; // Declare audioElement here
 
   toggleRecordingButton.addEventListener('click', () => {
     if (isRecording) {
@@ -69,27 +67,23 @@ document.addEventListener('DOMContentLoaded', () => {
       getAll.onsuccess = (event) => {
         const recordings = event.target.result;
         recordings.forEach((recording) => {
-          createRecordingItem(recording.audioBlob, recording.name, recording.id);
+          createRecordingItem(recording.audioBlob, recording.name);
         });
       };
     });
   }
 
-  function createRecordingItem(audioBlob, name, id) {
+  function createRecordingItem(audioBlob, name) {
     const audioUrl = URL.createObjectURL(audioBlob);
 
     const recordingItem = document.createElement('div');
     recordingItem.classList.add('recordedItem');
-    recordingItem.dataset.recordingId = id;
     recordingItem.innerHTML = `
-    <div class="audio-box">
       <div class="left-section">
-        <button class="playPauseButton" data-src="${audioUrl}">&#9654;</button>
+        <button class="playPauseButton" data-src="${audioUrl}">&#9658;</button>
       </div>
       <div class="right-section">
-        <p class="name">${name}</p>
-        <p class="additionalDate">${getAdditionalDate()}</p>
-      </div>
+        <p>Name: ${name}</p>
       </div>
     `;
 
@@ -98,9 +92,6 @@ document.addEventListener('DOMContentLoaded', () => {
         handlePlayPauseClick(event.target);
       }
     });
-
-    recordingItem.addEventListener('touchstart', handleTouchStart);
-    recordingItem.addEventListener('touchend', handleTouchEnd);
 
     const firstRecordingItem = recordingsList.firstChild;
     recordingsList.insertBefore(recordingItem, firstRecordingItem);
@@ -115,81 +106,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (audioElement.paused) {
       audioElement.play();
-      button.innerHTML = '&#9646;&#9646;';
+      button.innerHTML = '&#9646;&#9646;'; // Pause symbol
     } else {
       audioElement.pause();
-      button.innerHTML = '&#9654;';
+      button.innerHTML = '&#9658;'; // Play symbol
     }
-  }
-
-  function handleTouchStart(event) {
-    touchStartX = event.touches[0].clientX;
-  }
-
-  function handleTouchEnd(event) {
-    touchEndX = event.changedTouches[0].clientX;
-    const swipedItem = event.target.closest('.recordedItem');
-    handleSwipe(swipedItem);
-  }
-
-  function handleSwipe(item) {
-    const swipeThreshold = 50;
-    const deltaX = touchEndX - touchStartX;
-
-    if (deltaX < -swipeThreshold) {
-      confirmDeleteRecording(item);
-    } else if (deltaX > swipeThreshold) {
-      downloadRecording(item);
-    }
-  }
-
-  function confirmDeleteRecording(item) {
-    const name = item.querySelector('.name').textContent;
-    const confirmation = window.confirm(`Are you sure you want to delete "${name}"?`);
-
-    if (confirmation) {
-      deleteRecordingItem(item);
-    }
-  }
-
-  function downloadRecording(item) {
-    const name = item.querySelector('.name').textContent;
-    const audioUrl = item.querySelector('.playPauseButton').getAttribute('data-src');
-    const blob = fetch(audioUrl).then(response => response.blob()).then(blob => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${name}.wav`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    });
-  }
-
-  function deleteRecordingItem(itemToDelete) {
-    if (itemToDelete) {
-      const recordingId = parseInt(itemToDelete.dataset.recordingId);
-      deleteRecordingFromDB(recordingId);
-
-      itemToDelete.remove();
-    }
-  }
-
-  function deleteRecordingFromDB(recordingId) {
-    dbPromise.then((db) => {
-      const transaction = db.transaction(['recordings'], 'readwrite');
-      const store = transaction.objectStore('recordings');
-
-      store.delete(recordingId);
-    });
-  }
-
-  function updateRecordingProgressIndicator() {
-    const currentTime = performance.now() - startTime;
-    const minutes = Math.floor(currentTime / 60000);
-    const seconds = Math.floor((currentTime % 60000) / 1000);
-    const milliseconds = Math.floor((currentTime % 1000) / 10);
-    recordingProgress.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}:${String(milliseconds).padStart(2, '0')}`;
   }
 
   function startRecording() {
@@ -204,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         mediaRecorder.onstop = () => {
           const currentDate = new Date();
-          const formattedDate = formatDateTime(currentDate);
+          const formattedDate = formatDate(currentDate);
 
           const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
           createRecordingItem(audioBlob, formattedDate);
@@ -219,7 +140,14 @@ document.addEventListener('DOMContentLoaded', () => {
         mediaRecorder.start();
         startTime = performance.now();
 
-        updateRecordingProgress = setInterval(updateRecordingProgressIndicator, 10);
+        updateRecordingProgress = setInterval(() => {
+          const currentTime = performance.now();
+          const elapsedTime = currentTime - startTime;
+          const minutes = Math.floor(elapsedTime / 60000);
+          const seconds = Math.floor((elapsedTime % 60000) / 1000);
+          const milliseconds = Math.floor((elapsedTime % 1000) / 10);
+          recordingProgress.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}:${String(milliseconds).padStart(2, '0')}`;
+        }, 10); // Update every 10 milliseconds for better accuracy
       })
       .catch((error) => {
         console.error('Error accessing microphone:', error);
@@ -229,33 +157,23 @@ document.addEventListener('DOMContentLoaded', () => {
   function stopRecording() {
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
       mediaRecorder.stop();
+      const tracks = mediaRecorder.stream.getTracks();
+      tracks.forEach(track => track.stop());
       clearInterval(updateRecordingProgress);
-  
-      // Stop microphone access
-      if (mediaRecorder.stream) {
-        mediaRecorder.stream.getTracks().forEach(track => track.stop());
-      }
     }
   }
-  
 
-  function formatDateTime(date) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
+  function formatDate(date) {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = String(date.getHours() % 12 || 12).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    const milliseconds = String(date.getMilliseconds()).padStart(2, '0');
+    const ampm = date.getHours() >= 12 ? 'PM' : 'AM';
 
-    const formattedDate = `${months[date.getMonth()]} ${date.getDate()}, ${hours % 12 || 12}:${minutes < 10 ? '0' : ''}${minutes} ${ampm}`;
-    return formattedDate;
-  }
-
-  function getAdditionalDate() {
-    const currentDate = new Date();
-    const day = currentDate.getDate();
-    const month = currentDate.getMonth() + 1;
-    const year = currentDate.getFullYear();
-
-    return `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${String(year).substring(2)}`;
+    return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}:${milliseconds} ${ampm}`;
   }
 
   // Load existing recordings from IndexedDB on page load

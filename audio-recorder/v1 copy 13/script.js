@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let isRecording = false;
   let startTime;
   let updateRecordingProgress;
-  let audioElement;
+  let audioElement; // Declare audioElement here
   let touchStartX;
   let touchEndX;
 
@@ -82,14 +82,12 @@ document.addEventListener('DOMContentLoaded', () => {
     recordingItem.classList.add('recordedItem');
     recordingItem.dataset.recordingId = id;
     recordingItem.innerHTML = `
-    <div class="audio-box">
       <div class="left-section">
-        <button class="playPauseButton" data-src="${audioUrl}">&#9654;</button>
+        <button class="playPauseButton" data-src="${audioUrl}">&#9658;</button>
       </div>
       <div class="right-section">
         <p class="name">${name}</p>
         <p class="additionalDate">${getAdditionalDate()}</p>
-      </div>
       </div>
     `;
 
@@ -115,10 +113,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (audioElement.paused) {
       audioElement.play();
-      button.innerHTML = '&#9646;&#9646;';
+      button.innerHTML = '&#9646;&#9646;'; // Pause symbol
     } else {
       audioElement.pause();
-      button.innerHTML = '&#9654;';
+      button.innerHTML = '&#9658;'; // Play symbol
     }
   }
 
@@ -134,36 +132,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function handleSwipe(item) {
     const swipeThreshold = 50;
+
     const deltaX = touchEndX - touchStartX;
 
     if (deltaX < -swipeThreshold) {
-      confirmDeleteRecording(item);
-    } else if (deltaX > swipeThreshold) {
-      downloadRecording(item);
-    }
-  }
-
-  function confirmDeleteRecording(item) {
-    const name = item.querySelector('.name').textContent;
-    const confirmation = window.confirm(`Are you sure you want to delete "${name}"?`);
-
-    if (confirmation) {
       deleteRecordingItem(item);
     }
-  }
-
-  function downloadRecording(item) {
-    const name = item.querySelector('.name').textContent;
-    const audioUrl = item.querySelector('.playPauseButton').getAttribute('data-src');
-    const blob = fetch(audioUrl).then(response => response.blob()).then(blob => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${name}.wav`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    });
   }
 
   function deleteRecordingItem(itemToDelete) {
@@ -182,6 +156,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
       store.delete(recordingId);
     });
+  }
+
+  function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+      const tracks = mediaRecorder.stream.getTracks();
+      tracks.forEach(track => track.stop());
+      clearInterval(updateRecordingProgress);
+    }
+  }
+
+  function formatDateTime(date) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+
+    const formattedDate = `${months[date.getMonth()]} ${date.getDate()}, ${hours % 12 || 12}:${minutes < 10 ? '0' : ''}${minutes} ${ampm}`;
+    return formattedDate;
+  }
+
+  function getAdditionalDate() {
+    const currentDate = new Date();
+    const day = currentDate.getDate();
+    const month = currentDate.getMonth() + 1;
+    const year = currentDate.getFullYear();
+
+    return `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${String(year).substring(2)}`;
   }
 
   function updateRecordingProgressIndicator() {
@@ -219,43 +221,11 @@ document.addEventListener('DOMContentLoaded', () => {
         mediaRecorder.start();
         startTime = performance.now();
 
-        updateRecordingProgress = setInterval(updateRecordingProgressIndicator, 10);
+        updateRecordingProgress = setInterval(updateRecordingProgressIndicator, 10); // Update every 10 milliseconds for better accuracy
       })
       .catch((error) => {
         console.error('Error accessing microphone:', error);
       });
-  }
-
-  function stopRecording() {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-      mediaRecorder.stop();
-      clearInterval(updateRecordingProgress);
-  
-      // Stop microphone access
-      if (mediaRecorder.stream) {
-        mediaRecorder.stream.getTracks().forEach(track => track.stop());
-      }
-    }
-  }
-  
-
-  function formatDateTime(date) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-
-    const formattedDate = `${months[date.getMonth()]} ${date.getDate()}, ${hours % 12 || 12}:${minutes < 10 ? '0' : ''}${minutes} ${ampm}`;
-    return formattedDate;
-  }
-
-  function getAdditionalDate() {
-    const currentDate = new Date();
-    const day = currentDate.getDate();
-    const month = currentDate.getMonth() + 1;
-    const year = currentDate.getFullYear();
-
-    return `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${String(year).substring(2)}`;
   }
 
   // Load existing recordings from IndexedDB on page load

@@ -82,14 +82,12 @@ document.addEventListener('DOMContentLoaded', () => {
     recordingItem.classList.add('recordedItem');
     recordingItem.dataset.recordingId = id;
     recordingItem.innerHTML = `
-    <div class="audio-box">
       <div class="left-section">
-        <button class="playPauseButton" data-src="${audioUrl}">&#9654;</button>
+        <button class="playPauseButton" data-src="${audioUrl}">&#9658;</button>
       </div>
       <div class="right-section">
         <p class="name">${name}</p>
         <p class="additionalDate">${getAdditionalDate()}</p>
-      </div>
       </div>
     `;
 
@@ -118,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
       button.innerHTML = '&#9646;&#9646;';
     } else {
       audioElement.pause();
-      button.innerHTML = '&#9654;';
+      button.innerHTML = '&#9658;';
     }
   }
 

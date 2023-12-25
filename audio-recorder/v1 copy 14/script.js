@@ -82,14 +82,12 @@ document.addEventListener('DOMContentLoaded', () => {
     recordingItem.classList.add('recordedItem');
     recordingItem.dataset.recordingId = id;
     recordingItem.innerHTML = `
-    <div class="audio-box">
       <div class="left-section">
-        <button class="playPauseButton" data-src="${audioUrl}">&#9654;</button>
+        <button class="playPauseButton" data-src="${audioUrl}">&#9658;</button>
       </div>
       <div class="right-section">
         <p class="name">${name}</p>
         <p class="additionalDate">${getAdditionalDate()}</p>
-      </div>
       </div>
     `;
 
@@ -118,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
       button.innerHTML = '&#9646;&#9646;';
     } else {
       audioElement.pause();
-      button.innerHTML = '&#9654;';
+      button.innerHTML = '&#9658;';
     }
   }
 
@@ -138,8 +136,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (deltaX < -swipeThreshold) {
       confirmDeleteRecording(item);
-    } else if (deltaX > swipeThreshold) {
-      downloadRecording(item);
     }
   }
 
@@ -150,20 +146,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (confirmation) {
       deleteRecordingItem(item);
     }
-  }
-
-  function downloadRecording(item) {
-    const name = item.querySelector('.name').textContent;
-    const audioUrl = item.querySelector('.playPauseButton').getAttribute('data-src');
-    const blob = fetch(audioUrl).then(response => response.blob()).then(blob => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${name}.wav`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    });
   }
 
   function deleteRecordingItem(itemToDelete) {
@@ -182,6 +164,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       store.delete(recordingId);
     });
+  }
+
+  function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+      clearInterval(updateRecordingProgress);
+    }
   }
 
   function updateRecordingProgressIndicator() {
@@ -226,19 +215,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
 
-  function stopRecording() {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-      mediaRecorder.stop();
-      clearInterval(updateRecordingProgress);
-  
-      // Stop microphone access
-      if (mediaRecorder.stream) {
-        mediaRecorder.stream.getTracks().forEach(track => track.stop());
-      }
-    }
-  }
-  
-
   function formatDateTime(date) {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const hours = date.getHours();
@@ -260,4 +236,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Load existing recordings from IndexedDB on page load
   loadRecordingsFromDB();
+  setSwipeDeleteListeners();
 });
