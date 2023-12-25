@@ -82,16 +82,14 @@ document.addEventListener('DOMContentLoaded', () => {
     recordingItem.classList.add('recordedItem');
     recordingItem.dataset.recordingId = id;
     recordingItem.innerHTML = `
-      <div class="audio-box">
-        <div class="left-section">
-          <button class="playPauseButton" data-src="${audioUrl}">
-            <img src="play.png" alt="Play">
-          </button>
-        </div>
-        <div class="right-section">
-          <p class="name">${name}</p>
-          <p class="additionalDate">${getAdditionalDate()}</p>
-        </div>
+    <div class="audio-box">
+      <div class="left-section">
+        <button class="playPauseButton" data-src="${audioUrl}">&#9654;</button>
+      </div>
+      <div class="right-section">
+        <p class="name">${name}</p>
+        <p class="additionalDate">${getAdditionalDate()}</p>
+      </div>
       </div>
     `;
 
@@ -110,28 +108,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function handlePlayPauseClick(button) {
     const audioUrl = button.getAttribute('data-src');
-    const imgElement = button.querySelector('img');
-  
+
     if (!audioElement || audioElement.src !== audioUrl) {
       audioElement = new Audio(audioUrl);
-  
-      audioElement.addEventListener('ended', () => {
-        imgElement.setAttribute('src', 'play.png');
-        imgElement.setAttribute('alt', 'Play');
-      });
     }
-  
+
     if (audioElement.paused) {
       audioElement.play();
-      imgElement.setAttribute('src', 'pause.png');
-      imgElement.setAttribute('alt', 'Pause');
+      button.innerHTML = '&#9646;&#9646;';
     } else {
       audioElement.pause();
-      imgElement.setAttribute('src', 'play.png');
-      imgElement.setAttribute('alt', 'Play');
+      button.innerHTML = '&#9654;';
     }
   }
-  
 
   function handleTouchStart(event) {
     touchStartX = event.touches[0].clientX;
@@ -248,6 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   }
+  
 
   function formatDateTime(date) {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
