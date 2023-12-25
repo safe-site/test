@@ -13,21 +13,18 @@ document.addEventListener('DOMContentLoaded', () => {
   let touchEndX;
 
   toggleRecordingButton.addEventListener('click', () => {
-    const toggleRecordingImg = document.getElementById('toggleRecordingImg');
-
     if (isRecording) {
-        stopRecording();
-        toggleRecordingImg.src = 'assets/images/start-recording.png';
-        toggleRecordingButton.style.color = 'red';
+      stopRecording();
+      toggleRecordingButton.textContent = 'stop_circle';
+      toggleRecordingButton.style.color = 'red';
     } else {
-        startRecording();
-        toggleRecordingImg.src = 'assets/images/stop-recording.png';
-        toggleRecordingButton.style.color = 'green';
+      startRecording();
+      toggleRecordingButton.textContent = 'check_circle';
+      toggleRecordingButton.style.color = 'green';
     }
 
     isRecording = !isRecording;
-});
-
+  });
 
   const dbPromise = new Promise((resolve, reject) => {
     const request = window.indexedDB.open('VoiceRecorderDB', 1);

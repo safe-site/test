@@ -84,7 +84,7 @@ h1 {
   width: 40px;
   height: 40px;
   border-radius: 50px;
-  background-image: url('assets/images/play.png');
+  background-image: url('play.png');
 }
 
 .recordedItem .right-section p {
@@ -117,7 +117,7 @@ h1 {
 
 
   .play {
-    background-image: url('assets/images/play.png');background-color: #ffffff;
+    background-image: url('play.png');background-color: #ffffff;
     background-repeat: no-repeat;
     background-size: contain;
     border: 1px solid rgb(255, 255, 255);
@@ -128,7 +128,7 @@ h1 {
   }
 
   .pause {
-    background-image: url('assets/images/pause.png');background-color: #ffffff;
+    background-image: url('pause.png');background-color: #ffffff;
     background-repeat: no-repeat;
     background-size: contain;
     border: 1px solid rgb(255, 255, 255);
@@ -164,6 +164,20 @@ h1 {
   height: 20vh;
 }
 
+#toggleRecording {
+  background-color: #000000;
+  padding: 0px;
+  margin: 0%;
+  margin-bottom: 30px;
+  font-size: 60px;
+  height: 60px;
+  width: 60px;
+  color: red;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+}
+
 #recordingProgress {
   display: flex;
   color: #f1f3f5;
@@ -174,18 +188,3 @@ h1 {
 }
 
 
-#toggleRecording {
-  background: none;
-  border: none;
-  margin-bottom: 30px;
-  border-radius: 50px;
-  height: 60px;
-  cursor: pointer;
-  display: inline-block;
-}
-
-
-#toggleRecordingImg {
-  width: 60px;
-  height: 60px;
-}

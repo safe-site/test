@@ -164,6 +164,13 @@ h1 {
   height: 20vh;
 }
 
+#toggleRecordingImg {
+  background-color: none;
+  border-radius: 50px;
+  height: 60px;
+  cursor: pointer;
+}
+
 #recordingProgress {
   display: flex;
   color: #f1f3f5;
@@ -174,18 +181,3 @@ h1 {
 }
 
 
-#toggleRecording {
-  background: none;
-  border: none;
-  margin-bottom: 30px;
-  border-radius: 50px;
-  height: 60px;
-  cursor: pointer;
-  display: inline-block;
-}
-
-
-#toggleRecordingImg {
-  width: 60px;
-  height: 60px;
-}
