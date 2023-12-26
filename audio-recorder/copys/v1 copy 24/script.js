@@ -12,27 +12,22 @@ document.addEventListener('DOMContentLoaded', () => {
   let touchStartX;
   let touchEndX;
 
-  function formatTime(seconds) {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${String(remainingSeconds).padStart(2, '0')}`;
-  }
-
   toggleRecordingButton.addEventListener('click', () => {
     const toggleRecordingImg = document.getElementById('toggleRecordingImg');
 
     if (isRecording) {
-      stopRecording();
-      toggleRecordingImg.src = 'assets/images/start-recording.png';
-      toggleRecordingButton.style.color = 'red';
+        stopRecording();
+        toggleRecordingImg.src = 'assets/images/start-recording.png';
+        toggleRecordingButton.style.color = 'red';
     } else {
-      startRecording();
-      toggleRecordingImg.src = 'assets/images/stop-recording.png';
-      toggleRecordingButton.style.color = 'green';
+        startRecording();
+        toggleRecordingImg.src = 'assets/images/stop-recording.png';
+        toggleRecordingButton.style.color = 'green';
     }
 
     isRecording = !isRecording;
-  });
+});
+
 
   const dbPromise = new Promise((resolve, reject) => {
     const request = window.indexedDB.open('VoiceRecorderDB', 1);
@@ -93,10 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="audio-box">
         <div class="left-section">
           <button class="playPauseButton" data-src="${audioUrl}" data-state="paused"></button>
-          <input type="range" class="audioSlider" value="0" min="0" step="0.01" />
-          <div class="timeDisplay">
-            <span class="currentTime">0:00</span> / <span class="totalDuration">0:00</span>
-          </div>
         </div>
         <div class="right-section">
           <p class="name">${name}</p>
@@ -116,32 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const firstRecordingItem = recordingsList.firstChild;
     recordingsList.insertBefore(recordingItem, firstRecordingItem);
-
-    // Add event listener for the playback slider
-    const audioSlider = recordingItem.querySelector('.audioSlider');
-    audioSlider.addEventListener('input', () => {
-      handleSliderChange(audioSlider);
-    });
-  }
-
-  function handleSliderChange(slider) {
-    if (audioElement) {
-      const newTime = audioElement.duration * (slider.value / 100);
-      audioElement.currentTime = newTime;
-    }
-  }
-
-  function updatePlaybackProgress() {
-    if (audioElement) {
-      const currentTimeElement = document.querySelector('.currentTime');
-      const totalDurationElement = document.querySelector('.totalDuration');
-
-      currentTimeElement.textContent = formatTime(audioElement.currentTime);
-      totalDurationElement.textContent = formatTime(audioElement.duration);
-
-      const audioSlider = document.querySelector('.audioSlider');
-      audioSlider.value = (audioElement.currentTime / audioElement.duration) * 100;
-    }
   }
 
   function handlePlayPauseClick(button) {
@@ -157,13 +122,11 @@ document.addEventListener('DOMContentLoaded', () => {
       button.classList.remove('play');
       button.classList.add('pause');
       button.setAttribute('data-state', 'playing');
-      updateRecordingProgress = setInterval(updatePlaybackProgress, 1000);
     } else {
       audioElement.pause();
       button.classList.remove('pause');
       button.classList.add('play');
       button.setAttribute('data-state', 'paused');
-      clearInterval(updateRecordingProgress);
     }
   }
 
@@ -287,10 +250,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const hours = date.getHours();
     const minutes = date.getMinutes();
-    const seconds = date.getSeconds();
     const ampm = hours >= 12 ? 'PM' : 'AM';
 
-    const formattedDate = `${months[date.getMonth()]} ${date.getDate()}, ${hours % 12 || 12}:${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds} ${ampm}`;
+    const formattedDate = `${months[date.getMonth()]} ${date.getDate()}, ${hours % 12 || 12}:${minutes < 10 ? '0' : ''}${minutes} ${ampm}`;
     return formattedDate;
   }
 

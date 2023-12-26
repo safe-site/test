@@ -250,11 +250,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const hours = date.getHours();
     const minutes = date.getMinutes();
+    const seconds = date.getSeconds(); // Add this line to get seconds
     const ampm = hours >= 12 ? 'PM' : 'AM';
-
-    const formattedDate = `${months[date.getMonth()]} ${date.getDate()}, ${hours % 12 || 12}:${minutes < 10 ? '0' : ''}${minutes} ${ampm}`;
+  
+    const formattedDate = `${months[date.getMonth()]} ${date.getDate()}, ${hours % 12 || 12}:${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds} ${ampm}`;
     return formattedDate;
   }
+  
 
   function getAdditionalDate() {
     const currentDate = new Date();

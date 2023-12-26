@@ -1,12 +1,9 @@
 * {
   margin: 0;
   padding: 0;
+  outline: 0;
   scroll-behavior: smooth;
-  outline: none;
-  -webkit-tap-highlight-color: transparent;
-  box-shadow: none;
 }
-
 
 body {
   font-family: sans-serif;
@@ -22,7 +19,7 @@ body {
 
 .main {
   display: grid;
-  grid-template-rows: 6vh 73vh 20vh;
+  grid-template-rows: 6vh 74vh 20vh;
   height: 100vh;
   z-index: 0;
 }
@@ -75,6 +72,7 @@ h1 {
   display: grid;
   grid-template-columns: auto auto;
 }
+
 
 
 .playPauseButton {

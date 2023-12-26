@@ -1,0 +1,71 @@
+/* styles.css */
+
+body {
+    font-family: 'Roboto', sans-serif;
+    text-align: center;
+    background-color: #1e1e1e;
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  
+  h1 {
+    color: #61dafb;
+  }
+  
+  audio {
+    width: 100%;
+    max-width: 400px;
+    margin-top: 20px;
+  }
+  
+  #centerSection {
+    flex: 1; /* Expand to fill remaining space */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  #recordingsList {
+    width: 40%; /* Adjust the width as needed */
+    overflow-y: auto;
+    max-height: 40vh; /* Adjust the max-height as needed */
+    background-color: #333333;
+    padding: 20px;
+    border-radius: 10px;
+  }
+  
+  .recordedItem {
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #555555;
+    color: #ffffff;
+    border-radius: 5px;
+  }
+  
+  #bottomSection {
+    background-color: #333333;
+    padding: 20px;
+  }
+  
+  /* Rounded Button Styling */
+  .rounded-button {
+    display: block;
+    margin: 0 auto;
+    padding: 15px 30px;
+    font-size: 16px;
+    background-color: #61dafb;
+    color: #ffffff;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+  }
+  
+  .rounded-button:disabled {
+    background-color: #888888;
+    cursor: not-allowed;
+  }
+  
