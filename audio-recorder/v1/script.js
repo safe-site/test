@@ -16,44 +16,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const toggleRecordingImg = document.getElementById('toggleRecordingImg');
 
     if (isRecording) {
-      stopRecording();
-      toggleRecordingImg.src = 'assets/images/start-recording.png';
-      toggleRecordingButton.style.color = 'red';
+        stopRecording();
+        toggleRecordingImg.src = 'assets/images/start-recording.png';
+        toggleRecordingButton.style.color = 'red';
     } else {
-      startRecording();
-      toggleRecordingImg.src = 'assets/images/stop-recording.png';
-      toggleRecordingButton.style.color = 'green';
+        startRecording();
+        toggleRecordingImg.src = 'assets/images/stop-recording.png';
+        toggleRecordingButton.style.color = 'green';
     }
 
     isRecording = !isRecording;
-  });
+});
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDkhZo0klAFLJq3fwjEOiYsi6pvJEQ5rHU",
-    authDomain: "first-cbf04.firebaseapp.com",
-    projectId: "first-cbf04",
-    storageBucket: "first-cbf04.appspot.com",
-    messagingSenderId: "197744373296",
-    appId: "1:197744373296:web:64f434d316a973ab9007f5"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-
-  const storage = firebase.storage();
-  const storageRef = storage.ref();
-
-  function saveRecordingToStorage(audioBlob, name) {
-    const audioRef = storageRef.child(`recordings/${name}.wav`);
-
-    audioRef.put(audioBlob)
-      .then((snapshot) => {
-        console.log('Uploaded recording:', snapshot);
-        // Optionally, you can save additional metadata to Firestore or your database.
-      })
-      .catch((error) => {
-        console.error('Error uploading recording:', error);
-      });
-  }
 
   const dbPromise = new Promise((resolve, reject) => {
     const request = window.indexedDB.open('VoiceRecorderDB', 1);
@@ -244,7 +218,6 @@ document.addEventListener('DOMContentLoaded', () => {
           createRecordingItem(audioBlob, formattedDate);
 
           saveRecordingToDB(audioBlob, formattedDate);
-          saveRecordingToStorage(audioBlob, formattedDate);
 
           audioChunks = [];
           recordingProgress.textContent = '00:00:00';
@@ -279,10 +252,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const minutes = date.getMinutes();
     const seconds = date.getSeconds(); // Add this line to get seconds
     const ampm = hours >= 12 ? 'PM' : 'AM';
-
+  
     const formattedDate = `${months[date.getMonth()]} ${date.getDate()}, ${hours % 12 || 12}:${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds} ${ampm}`;
     return formattedDate;
   }
+  
 
   function getAdditionalDate() {
     const currentDate = new Date();

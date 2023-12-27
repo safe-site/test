@@ -1,8 +1,0 @@
-const firebaseConfig = {
-  apiKey: "AIzaSyDkhZo0klAFLJq3fwjEOiYsi6pvJEQ5rHU",
-  authDomain: "first-cbf04.firebaseapp.com",
-  projectId: "first-cbf04",
-  storageBucket: "first-cbf04.appspot.com",
-  messagingSenderId: "197744373296",
-  appId: "1:197744373296:web:64f434d316a973ab9007f5"
-};
