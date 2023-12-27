@@ -16,66 +16,74 @@ document.addEventListener('DOMContentLoaded', () => {
     const toggleRecordingImg = document.getElementById('toggleRecordingImg');
 
     if (isRecording) {
-      stopRecording();
-      toggleRecordingImg.src = 'assets/images/start-recording.png';
-      toggleRecordingButton.style.color = 'red';
+        stopRecording();
+        toggleRecordingImg.src = 'assets/images/start-recording.png';
+        toggleRecordingButton.style.color = 'red';
     } else {
-      startRecording();
-      toggleRecordingImg.src = 'assets/images/stop-recording.png';
-      toggleRecordingButton.style.color = 'green';
+        startRecording();
+        toggleRecordingImg.src = 'assets/images/stop-recording.png';
+        toggleRecordingButton.style.color = 'green';
     }
 
     isRecording = !isRecording;
+});
+
+
+  const dbPromise = new Promise((resolve, reject) => {
+    const request = window.indexedDB.open('VoiceRecorderDB', 1);
+
+    request.onerror = (event) => {
+      console.error('Error opening IndexedDB:', event.target.error);
+      reject(event.target.error);
+    };
+
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+
+      if (!db.objectStoreNames.contains('recordings')) {
+        db.createObjectStore('recordings', { keyPath: 'id', autoIncrement: true });
+      }
+    };
+
+    request.onsuccess = (event) => {
+      const db = event.target.result;
+      resolve(db);
+    };
   });
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDkhZo0klAFLJq3fwjEOiYsi6pvJEQ5rHU",
-    authDomain: "first-cbf04.firebaseapp.com",
-    projectId: "first-cbf04",
-    storageBucket: "first-cbf04.appspot.com",
-    messagingSenderId: "197744373296",
-    appId: "1:197744373296:web:64f434d316a973ab9007f5"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-
-  const storage = firebase.storage();
-
   function saveRecordingToDB(audioBlob, name) {
-    const storageRef = storage.ref();
-    const audioRef = storageRef.child(`recordings/${name}.wav`);
+    dbPromise.then((db) => {
+      const transaction = db.transaction(['recordings'], 'readwrite');
+      const store = transaction.objectStore('recordings');
 
-    audioRef.put(audioBlob)
-      .then((snapshot) => {
-        console.log('Uploaded recording:', snapshot);
-        // Optionally, you can save additional metadata to Firestore or your database.
-      })
-      .catch((error) => {
-        console.error('Error uploading recording:', error);
-      });
+      const recording = { audioBlob: audioBlob, name: name };
+
+      store.add(recording);
+    });
   }
 
   function loadRecordingsFromDB() {
-    // Fetch a list of recordings from Firebase Storage
-    const storageRef = storage.ref('recordings');
+    dbPromise.then((db) => {
+      const transaction = db.transaction(['recordings'], 'readonly');
+      const store = transaction.objectStore('recordings');
 
-    storageRef.listAll()
-      .then((result) => {
-        result.items.forEach((item) => {
-          createRecordingItem(item);
+      const getAll = store.getAll();
+
+      getAll.onsuccess = (event) => {
+        const recordings = event.target.result;
+        recordings.forEach((recording) => {
+          createRecordingItem(recording.audioBlob, recording.name, recording.id);
         });
-      })
-      .catch((error) => {
-        console.error('Error loading recordings:', error);
-      });
+      };
+    });
   }
 
-  function createRecordingItem(item) {
-    const name = item.name.replace('.wav', '');
-    const audioUrl = `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/recordings%2F${encodeURIComponent(item.name)}?alt=media`;
+  function createRecordingItem(audioBlob, name, id) {
+    const audioUrl = URL.createObjectURL(audioBlob);
 
     const recordingItem = document.createElement('div');
     recordingItem.classList.add('recordedItem');
+    recordingItem.dataset.recordingId = id;
     recordingItem.innerHTML = `
       <div class="audio-box">
         <div class="left-section">
@@ -168,20 +176,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function deleteRecordingItem(itemToDelete) {
     if (itemToDelete) {
-      const name = itemToDelete.querySelector('.name').textContent;
-      const audioRef = storage.ref().child(`recordings/${name}.wav`);
-
-      audioRef.delete()
-        .then(() => {
-          console.log('Deleted recording from storage:', name);
-          // Optionally, you can delete from Firestore or your database.
-        })
-        .catch((error) => {
-          console.error('Error deleting recording from storage:', error);
-        });
+      const recordingId = parseInt(itemToDelete.dataset.recordingId);
+      deleteRecordingFromDB(recordingId);
 
       itemToDelete.remove();
     }
+  }
+
+  function deleteRecordingFromDB(recordingId) {
+    dbPromise.then((db) => {
+      const transaction = db.transaction(['recordings'], 'readwrite');
+      const store = transaction.objectStore('recordings');
+
+      store.delete(recordingId);
+    });
   }
 
   function updateRecordingProgressIndicator() {
@@ -244,10 +252,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const minutes = date.getMinutes();
     const seconds = date.getSeconds(); // Add this line to get seconds
     const ampm = hours >= 12 ? 'PM' : 'AM';
-
+  
     const formattedDate = `${months[date.getMonth()]} ${date.getDate()}, ${hours % 12 || 12}:${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds} ${ampm}`;
     return formattedDate;
   }
+  
 
   function getAdditionalDate() {
     const currentDate = new Date();
@@ -258,6 +267,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${String(year).substring(2)}`;
   }
 
-  // Load existing recordings from Firebase Storage on page load
+  // Load existing recordings from IndexedDB on page load
   loadRecordingsFromDB();
 });
