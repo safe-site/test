@@ -40,9 +40,9 @@ document.addEventListener('DOMContentLoaded', () => {
   firebase.initializeApp(firebaseConfig);
 
   const storage = firebase.storage();
+  const storageRef = storage.ref();
 
-  function saveRecordingToDB(audioBlob, name) {
-    const storageRef = storage.ref();
+  function saveRecordingToStorage(audioBlob, name) {
     const audioRef = storageRef.child(`recordings/${name}.wav`);
 
     audioRef.put(audioBlob)
@@ -55,27 +55,61 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
 
-  function loadRecordingsFromDB() {
-    // Fetch a list of recordings from Firebase Storage
-    const storageRef = storage.ref('recordings');
+  const dbPromise = new Promise((resolve, reject) => {
+    const request = window.indexedDB.open('VoiceRecorderDB', 1);
 
-    storageRef.listAll()
-      .then((result) => {
-        result.items.forEach((item) => {
-          createRecordingItem(item);
-        });
-      })
-      .catch((error) => {
-        console.error('Error loading recordings:', error);
-      });
+    request.onerror = (event) => {
+      console.error('Error opening IndexedDB:', event.target.error);
+      reject(event.target.error);
+    };
+
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+
+      if (!db.objectStoreNames.contains('recordings')) {
+        db.createObjectStore('recordings', { keyPath: 'id', autoIncrement: true });
+      }
+    };
+
+    request.onsuccess = (event) => {
+      const db = event.target.result;
+      resolve(db);
+    };
+  });
+
+  function saveRecordingToDB(audioBlob, name) {
+    dbPromise.then((db) => {
+      const transaction = db.transaction(['recordings'], 'readwrite');
+      const store = transaction.objectStore('recordings');
+
+      const recording = { audioBlob: audioBlob, name: name };
+
+      store.add(recording);
+    });
   }
 
-  function createRecordingItem(item) {
-    const name = item.name.replace('.wav', '');
-    const audioUrl = `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/recordings%2F${encodeURIComponent(item.name)}?alt=media`;
+  function loadRecordingsFromDB() {
+    dbPromise.then((db) => {
+      const transaction = db.transaction(['recordings'], 'readonly');
+      const store = transaction.objectStore('recordings');
+
+      const getAll = store.getAll();
+
+      getAll.onsuccess = (event) => {
+        const recordings = event.target.result;
+        recordings.forEach((recording) => {
+          createRecordingItem(recording.audioBlob, recording.name, recording.id);
+        });
+      };
+    });
+  }
+
+  function createRecordingItem(audioBlob, name, id) {
+    const audioUrl = URL.createObjectURL(audioBlob);
 
     const recordingItem = document.createElement('div');
     recordingItem.classList.add('recordedItem');
+    recordingItem.dataset.recordingId = id;
     recordingItem.innerHTML = `
       <div class="audio-box">
         <div class="left-section">
@@ -168,20 +202,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function deleteRecordingItem(itemToDelete) {
     if (itemToDelete) {
-      const name = itemToDelete.querySelector('.name').textContent;
-      const audioRef = storage.ref().child(`recordings/${name}.wav`);
-
-      audioRef.delete()
-        .then(() => {
-          console.log('Deleted recording from storage:', name);
-          // Optionally, you can delete from Firestore or your database.
-        })
-        .catch((error) => {
-          console.error('Error deleting recording from storage:', error);
-        });
+      const recordingId = parseInt(itemToDelete.dataset.recordingId);
+      deleteRecordingFromDB(recordingId);
 
       itemToDelete.remove();
     }
+  }
+
+  function deleteRecordingFromDB(recordingId) {
+    dbPromise.then((db) => {
+      const transaction = db.transaction(['recordings'], 'readwrite');
+      const store = transaction.objectStore('recordings');
+
+      store.delete(recordingId);
+    });
   }
 
   function updateRecordingProgressIndicator() {
@@ -210,6 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
           createRecordingItem(audioBlob, formattedDate);
 
           saveRecordingToDB(audioBlob, formattedDate);
+          saveRecordingToStorage(audioBlob, formattedDate);
 
           audioChunks = [];
           recordingProgress.textContent = '00:00:00';
@@ -258,6 +293,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${String(year).substring(2)}`;
   }
 
-  // Load existing recordings from Firebase Storage on page load
+  // Load existing recordings from IndexedDB on page load
   loadRecordingsFromDB();
 });
