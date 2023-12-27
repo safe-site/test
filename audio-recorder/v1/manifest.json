@@ -1,0 +1,22 @@
+{
+    "name": "Audio Recorder",
+    "short_name": "Recorder",
+    "description": "A simple Audio Recorder Wev App",
+    "start_url": "index.html",
+    "display": "standalone",
+    "background_color": "#1f1f1f",
+    "theme_color": "#050505",
+    "icons": [
+      {
+        "src": "assets/images/app-icon-192x192.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "assets/images/app-icon-512x512.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ]
+  }
+
