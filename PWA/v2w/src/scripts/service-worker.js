@@ -19,7 +19,7 @@ self.addEventListener('install', (event) => {
       return cache.addAll([
         '',
         'index.html',
-        'assets/images/app-icon.png'
+        'assets/images/app-icon-192.png'
       ]);
     })
   );
